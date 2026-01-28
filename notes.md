@@ -761,3 +761,215 @@ Além disso, como criamos este projeto, podemos compartilhá-lo em nosso portfó
 
 Solicitando feedback e despedida
 Por favor, não se esqueça de avaliar este curso, deixando nos comentários sugestões de melhorias ou sua opinião sobre o que achou. Nos vemos na próxima aula. Até mais!
+
+@02-Praticando automações no Make
+
+@@01
+Mão na massa: Automatização de alertas de estoque
+ PRÓXIMA ATIVIDADE
+
+Vamos buscar praticar nossos novos aprendizados entrando em outros contextos para resolver novos problemas!
+Atividade
+Você é responsável pela gestão de uma loja online com diversos tipos de produtos, e precisa garantir que o estoque esteja sempre disponível para atender aos pedidos. A loja possui uma regra clara: sempre que a quantidade de um item estiver igual ou abaixo de 3 unidades, é necessário repor o estoque. Para evitar controle manual e perda de tempo, você decide automatizar esse processo usando o Make. A ideia é identificar os produtos com estoque baixo e gerar automaticamente um e-mail para a pessoa responsável por aquele tipo de item solicitando a reposição.
+
+Você tem dois conjuntos de dados: um com os produtos e suas quantidades em estoque, e outro com o e-mail do responsável por cada produto. Esses dados podem ser organizados em duas tabelas no Excel e acessados via Make.
+
+Dados 1: Estoque
+
+Produto	Quantidade em Estoque
+Fone Bluetooth Pro	12
+Carregador USB-C 20W	3
+Teclado Mecânico RGB	7
+Camiseta Básica Preta	25
+Jaqueta Corta Vento	2
+Calça Jeans Slim	6
+Tênis Esportivo Branco	4
+Sandália Feminina Couro	10
+Bota Masculina Marrom	1
+Mochila Executiva Nylon	9
+Relógio Digital Casual	15
+Óculos de Sol Unissex	5
+Livro: “A Arte da Guerra”	18
+Caderno Capa Dura 200p	8
+Caneta Esferográfica Kit	2
+Dados 2: Responsáveis
+
+Produto	Responsável (E-mail)
+Fone Bluetooth Pro	eletronicos@email.com
+Carregador USB-C 20W	eletronicos@email.com
+Teclado Mecânico RGB	eletronicos@email.com
+Camiseta Básica Preta	roupas@email.com
+Jaqueta Corta Vento	roupas@email.com
+Calça Jeans Slim	roupas@email.com
+Tênis Esportivo Branco	calcados@email.com
+Sandália Feminina Couro	calcados@email.com
+Bota Masculina Marrom	calcados@email.com
+Mochila Executiva Nylon	acessorios@email.com
+Relógio Digital Casual	acessorios@email.com
+Óculos de Sol Unissex	acessorios@email.com
+Livro: “A Arte da Guerra”	papelaria@email.com
+Caderno Capa Dura 200p	papelaria@email.com
+Caneta Esferográfica Kit	papelaria@email.com
+Acesse o arquivo com as tabelas dessa atividade e da próxima nesse link
+Portanto, crie uma automação no Make que:
+
+Leia os dados do estoque e identifique quais produtos estão com quantidade igual ou menor que 3;
+Localize o e-mail do responsável por cada um desses produtos com base na segunda planilha;
+Envie um e-mail automático solicitando a reposição do item, informando o nome do produto e a quantidade atual em estoque.
+Dica: Você pode apenas gerar um rascunho de e-mail com Groq ao invés de enviar um e-mail de fato.
+
+Existem várias formas de resolver esse problema e eu irei apresentar uma delas! Mas você sempre pode usar sua criatividade para construir da sua forma e ver o projeto funcionar!
+A ideia de fluxo para o projeto será: Leitura dos dados de estoque > filtragem apenas dos produtos com baixa quantidade > leitura dos dados de contato > envio dos dados de estoque e contato para a IA gerar um e-mail > geração de e-mail.
+
+Começamos adicionando o módulo do Excel para coletar a planilha de estoque. Então adicionamos o módulo Microsoft 365 Excel e a função List Worksheet Rows. Na configuração, iremos adicionar nossa planilha de Estoque de produtos.
+
+Alt text: A imagem mostra a configuração de um módulo do Microsoft 365 Excel na plataforma Make. Os campos preenchidos indicam a seleção do método, o local do OneDrive definido como “My Drive”, o arquivo chamado “Planilha de mão na massa.xlsx” e a planilha “Estoque de produtos”. A opção “Skip All Rows After a Blank Row” está marcada como “Yes”, e o campo “Limit” para número máximo de resultados está vazio. Há botões “Cancel” e “Save” no rodapé da janela.
+
+De modo similar, seguimos para a coleta de contatos dos responsáveis pelo estoque. Utilizamos o mesmo módulo e função (Microsoft 365 Excel e List Worksheet Rows) para acessar os contatos. A diferença está apenas na planilha utilizada, pois agora será a planilha de contatos.
+
+Antes de seguir para o próximo passo, iremos colocar um filtro na linha que liga as duas consultas de planilha. Basta apenas clicar na linha que liga os módulos e definir o filtro.
+
+Alt text: A imagem mostra dois módulos conectados na plataforma Make, ambos do Microsoft Excel. À esquerda está o módulo “Planilha estoque” e à direita o “Planilha contatos”, ambos configurados para listar linhas de planilhas. Entre os dois módulos há uma seta vermelha apontando para o ponto de conexão central, indicando a rota entre eles.
+
+Dei o nome do filtro de “Filtro de baixo estoque” e a condição é que o valor da quantidade de estoque deve ter um valor menor ou igual a 3 como especificado na imagem.
+
+Alt text: A imagem mostra a configuração de um filtro na plataforma Make, com o título “Filtro de baixo estoque”. A condição definida avalia se o valor da coluna “Quantidade em Estoque” é menor ou igual a 3. Há botões para adicionar regras adicionais com operadores AND ou OR, além das opções “Cancel” e “Save” no rodapé da janela.
+
+Com esse filtro, limitamos que apenas os pedidos que precisam de estoque entrem no fluxo e façam a execução desejada na automação.
+
+Agora partimos para a continuidade do fluxo. Vamos voltar para coleta de contatos dos responsáveis. Para facilitar o encontro do contato correto pela IA, é necessário que ele possa ver todo o texto da tabela, logo iremos utilizar uma ferramenta de agregação de texto. Para isso acessamos o módulo de Tools e a função Text aggregator.
+
+A agregação de texto vai gerar uma tabela que lista o nome do produto seguido com o contato do responsável.
+
+Alt text: A imagem mostra a configuração de uma ferramenta na plataforma Make para agregar dados da planilha “Planilha contatos” do Excel. O módulo de origem selecionado é o que lista as linhas da planilha, o separador de linhas está definido como “New row” e não há agrupamento configurado. Na área de texto, foram selecionados os campos “Produto” e “Responsável (E-mail)” do excel e colocados entre barras verticais. A opção “Show advanced settings” está ativada e os botões “Cancel” e “Save” aparecem no canto inferior.
+
+Agora com todos os dados coletados, podemos seguir para a geração de uma mensagem com a IA. Utilizaremos o módulo do Groq para utilizar os modelos disponíveis. Para isso, adicionamos o módulo de Groq e a função Create a JSON Chat Completion.
+
+O modelo utilizado é o llama-3.3-70b-versatile e nosso prompt do sistema é:
+
+O JSON deverá conter informações suficientes para enviar o e-mail de notificação conforme o estruturado: 
+ 
+{ 
+  "e-mail responsavel": "e-mail", 
+  "Assunto": "Notificação de baixa no estoque!", 
+  "Texto-mensagem": "Mensagem criada" 
+} 
+ 
+O "Assunto" não deve ser alterado. Os valores das outras estruturas devem ser ajustados conforme a solicitação. 
+COPIAR CÓDIGO
+Já o prompt de usuário é:
+
+Você é responsável por notificar setores responsáveis pelo estoque de itens para uma loja. A regra de estoque da loja é: quando temos valores de itens abaixo ou igual a 3, é necessário fazer a reposição. Para a reposição é necessário enviar um e-mail para o setor responsável, sua missão é criar esse e-mail. 
+ 
+Abaixo informações sobre os produtos que estão com baixa quantidade: 
+ 
+Produto: {{VARIÁVEL DO EXCEL - LINHA PRODUTO}} 
+Quantidade em estoque: {{VARIÁVEL DO EXCEL - LINHA QUANTIDADE DO ESTOQUE}} 
+ 
+Abaixo, a lista de contatos a depender do produto em falta: 
+ 
+{{VARIÁVEL DO TOOLS- SAÍDA DE TEXTO}} 
+ 
+Descubra qual o e-mail adequado para o contato. 
+ 
+Crie um e-mail que notifica o setor responsável da situação atual e solicite a reposição dos itens o quanto antes. O e-mail deve ser profissional, objetivo e educado, não faça apresentação ou despedida. Use HTML para manter a estrutura adequada do e-mail. A composição do e-mail deve seguir a estrutura: 
+ 
+[Texto de notificação da baixa quantidade do produto] 
+[Texto de informações sobre o produto] 
+ 
+[Texto de solicitação de reposição do estoque] 
+COPIAR CÓDIGO
+Com o texto de e-mail pronto, podemos seguir para a criação de uma mensagem que pode ser enviada. Para isso utilizaremos o Microsoft 365 Email (Outlook) e a função Create a Draft Message, pois estaremos criando uma mensagem de rascunho.
+
+O assunto, mensagem e contato são especificados pela saída do Groq. Um detalhe é que eu escolhi adicionar uma alta importância ao rascunho visto que o estoque estaria baixo.
+
+Alt text: A imagem mostra a configuração de criação de e-mail pelo módulo Microsoft 365 Email (Outlook) na plataforma Make. Os campos “Subject” e “Body Content” estão preenchidos com variáveis referentes ao assunto e conteúdo da mensagem gerados pelo Groq. A importância do e-mail está definida como “High” e o campo “To Recipients” contém um endereço dinâmico representado pela variável “e-mail responsável” do Groq. A opção de configurações avançadas está desativada, e os botões “Cancel” e “Save” aparecem na parte inferior.
+
+Observamos que nosso projeto tem o seguinte fluxo:
+
+Alt text: A imagem mostra um fluxo automatizado na plataforma Make com cinco módulos conectados. O primeiro módulo “Planilha estoque” lê linhas de uma planilha do Excel, seguido por um filtro nomeado “Filtro de baixo estoque”. O segundo módulo “Planilha contatos” também lê dados de uma planilha. Em seguida, o módulo “Tools” agrega texto com base nas informações recebidas. O quarto módulo “Criando o e-mail” utiliza um modelo de linguagem para gerar o conteúdo do e-mail, e o último módulo “Microsoft 365 Email (Outlook)” cria uma mensagem de e-mail como rascunho.
+
+Com isso, podemos executar nosso projeto e ver os resultados. Ao clicar em “Run once” (Executar uma vez), esperar o fim do resultado e verificar no Outlook a pasta de rascunho.
+
+Alt text: A imagem mostra a caixa de rascunhos de e-mails, com quatro mensagens destinadas a diferentes endereços de contato: papelaria, calçados, roupas e eletrônicos. Todas têm o título “Notificação de baixa no e...” e exibem um alerta de prioridade com ponto de exclamação vermelho. As mensagens informam sobre a baixa no estoque de produtos como “Caneta Esf...”, “Carrega...” e outros, com os conteúdos parcialmente visíveis.
+
+Com isso, conseguimos criar uma solução para o problema!
+
+Baixe aqui o blueprint do projeto, caso queira conferir como fiz.
+
+@@02
+Mão na massa: Categorizando e-mails
+ PRÓXIMA ATIVIDADE
+
+Atividade
+Você é líder de um time de vendas, por isso recebe constantemente muitos e-mails com diversos propósitos dentro do contexto do trabalho. Para evitar um acúmulo de e-mails em sua caixa de mensagem e buscando organizar o que você recebe, você decide usar o Make para automatizar a categorização dos e-mails do trabalho.
+
+Existem quatro categorias que te interessam categorizar no momento: Reuniões e Agendamentos, Solicitação de Aprovações, Problemas e Urgências e Não categorizado.
+
+Para a implementação adequada da organização você vai precisar criar essas pastas no seu Outlook.
+Na tabela abaixo está a definição de cada categoria. Você pode copiá-la e colar em uma planilha do Excel para acessá-la pelo Make.
+
+Categoria	Descrição
+Reuniões e Agendamentos	E-mails relacionados a convites, confirmações, reagendamentos ou cancelamentos de reuniões e eventos internos. Palavras-chave: "agendar reunião", "remarcar", "confirmação de reunião", "link da chamada".
+Solicitação de Aprovações	Pedidos que exigem autorização, como aprovações de compras, novos projetos, contratações ou qualquer decisão que precise do aval da gestão. Palavras-chave: "aprovação necessária", "pedido de autorização", "precisamos da sua aprovação".
+Problemas e Urgências	E-mails que relatam falhas, incidentes operacionais, crises ou qualquer situação que exige resposta imediata. Palavras-chave: "urgente", "problema crítico", "precisamos resolver rápido", "incidente", "paralisação".
+Não categorizado	E-mails que não se encaixam em nenhuma das categorias acima.
+Faça um cenário no Make que permita que os e-mails recebidos por você possam ser automaticamente categorizados de acordo com a tabela acima, com base no conteúdo do e-mail, e movidos para a pasta correspondente no seu Outlook.
+
+Dica: Para montar isso, é necessário que você crie pastas no seu outlook com o nome dessas categorias.
+
+Existem várias formas de resolver esse problema e eu irei apresentar uma delas! Mas você sempre pode usar sua criatividade para construir da sua forma e ver o projeto funcionar!
+A ideia de fluxo para o projeto será: Leitura dos e-mails > leitura das categorias e descrições > definição da categoria > realocação do e-mail.
+
+Começamos adicionando o módulo do Outlook para ler os e-mails. Adicionamos ele com o módulo Microsoft 365 Email (Outlook) e a função Search Messages. Iremos definir a caixa de entrada como a pasta principal e o limite de mensagens, vamos definir como 1 (valor bem opcional).
+
+Com isso, seguimos para a adição do módulo do Excel para coletar a descrição das categorias. Então adicionamos o módulo Microsoft 365 Excel e a função List Worksheet Rows. Na configuração, iremos adicionar nossa planilha de Estoque de produtos.
+
+Para que todo o texto da planilha fique disponível para a IA conseguir definir a categoria, iremos utilizar da ferramenta de agregação de texto do Make. Então iremos adicionar no fluxo o módulo de Tools e a função Text aggregator. O módulo que iremos utilizar para agregar será o Excel, e iremos alocar o texto de Categoria e Descrição separados por barras verticais (|).
+
+Agora podemos adicionar o módulo do Groq para solicitar que a IA consiga identificar a categoria adequada para o e-mail. Adicionamos então o módulo do Groq com a função Create a JSON Chat Completion.
+
+O modelo utilizado é o llama-3.3-70b-versatile e nosso prompt do sistema é:
+
+De acordo com a solicitação, você deve retornar o seguinte JSON como resultado. 
+ 
+{ 
+  "categoria" : "categoria encontrada" 
+} 
+COPIAR CÓDIGO
+Já o prompt de usuário é:
+
+Você é um assistente especializado em categorização de e-mails para gestão. Sua tarefa é ler o conteúdo do e-mail e classificá-lo em uma das seguintes categorias pré-definidas. Retorne apenas o nome da categoria mais adequada. Se o e-mail não se encaixar em nenhuma categoria, retorne "Não categorizado". 
+ 
+Abaixo estão as categorias e suas descrições: 
+ 
+{{VALOR DE TOOLS - TEXTO}} 
+ 
+Agora, classifique o seguinte e-mail: 
+Assunto: {{VALOR DO OUTLOOK - SUBJECT (ASSUNTO)}} 
+Conteúdo:  
+{{VALOR DO OUTLOOK - BODY > CONTENT (CONTEÚDO)}} 
+ 
+Retorne apenas a categoria correspondente. 
+COPIAR CÓDIGO
+Ao fim, vamos executar todo o projeto, clicando no botão “Run once” para obtermos uma variável de saída do módulo do Groq.
+
+Com isso conseguimos obter o resultado da categoria do e-mail. Esse resultado vai definir para onde esse e-mail será movido. Utilizaremos o módulo de rotas junto a filtros para definir qual automação será feita. Nosso objetivo com isso é que, dependendo da categoria retornada, o fluxo de processo siga apenas um dos caminhos especificados.
+
+Portanto, adicionamos ao fluxo o módulo de rota, para adicioná-lo é bem simples, basta buscar pelo módulo de Flow Control e selecionar a função Router. Adicionamos caminhos clicando com botão esquerdo em cima do módulo de rotas. No primeiro caminho adicionamos o módulo Microsoft 365 Email (Outlook) e a função Move a Message. No módulo iremos definir o ID da mensagem que será movida como o ID da mensagem que foi lida e o novo folder que será movido como o folder de “Reuniões e Agendamentos”.
+
+Para que essa movimentação seja bem eficaz, precisamos definir o filtro que vai permitir que apenas a classificação de e-mail “Reuniões e Agendamentos” passe por essa rota. Para construir isso, adicionamos um filtro na linha de rota clicando em cima da linha que conecta os dois módulos.
+
+A configuração do filtro deverá ser que o valor resultante da saída do Groq seja igual a Reuniões e Agendamentos.
+
+Com isso definimos nossa primeira rota.
+
+O processo para as demais é bem similar, de modo que a única diferença é o valor da condição do filtro e para onde vai o e-mail (Solicitação de Aprovações, Problemas e Urgências ou Não categorizado). Então repetimos o mesmo processo para as demais categorias e ao fim temos o fluxo final.
+
+Ao executar a automação o e-mail que está na caixa de mensagens será movido para alguma das pastas criadas a depender do conteúdo dentro dela.
+
+Com isso, conseguimos criar uma solução para o problema!
+
+Baixe aqui o blueprint do arquivo.
+
+https://cdn3.gnarususercontent.com.br/4454-make/Projetos/mao-na-massa-01.json
